@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Battleship</title>
+  <title>Main</title>
   <style>body { padding: 0; margin: 0; }</style>
 </head>
 
@@ -5635,6 +5635,95 @@ var $elm$html$Html$Events$onClick = function (msg) {
 };
 var $elm$html$Html$option = _VirtualDom_node('option');
 var $elm$html$Html$select = _VirtualDom_node('select');
+var $author$project$Shot$Hit = function (a) {
+	return {$: 'Hit', a: a};
+};
+var $elm$core$List$partition = F2(
+	function (pred, list) {
+		var step = F2(
+			function (x, _v0) {
+				var trues = _v0.a;
+				var falses = _v0.b;
+				return pred(x) ? _Utils_Tuple2(
+					A2($elm$core$List$cons, x, trues),
+					falses) : _Utils_Tuple2(
+					trues,
+					A2($elm$core$List$cons, x, falses));
+			});
+		return A3(
+			$elm$core$List$foldr,
+			step,
+			_Utils_Tuple2(_List_Nil, _List_Nil),
+			list);
+	});
+var $elm_community$list_extra$List$Extra$gatherWith = F2(
+	function (testFn, list) {
+		var helper = F2(
+			function (scattered, gathered) {
+				helper:
+				while (true) {
+					if (!scattered.b) {
+						return $elm$core$List$reverse(gathered);
+					} else {
+						var toGather = scattered.a;
+						var population = scattered.b;
+						var _v1 = A2(
+							$elm$core$List$partition,
+							testFn(toGather),
+							population);
+						var gathering = _v1.a;
+						var remaining = _v1.b;
+						var $temp$scattered = remaining,
+							$temp$gathered = A2(
+							$elm$core$List$cons,
+							_Utils_Tuple2(toGather, gathering),
+							gathered);
+						scattered = $temp$scattered;
+						gathered = $temp$gathered;
+						continue helper;
+					}
+				}
+			});
+		return A2(helper, list, _List_Nil);
+	});
+var $elm_community$list_extra$List$Extra$gatherEquals = function (list) {
+	return A2($elm_community$list_extra$List$Extra$gatherWith, $elm$core$Basics$eq, list);
+};
+var $author$project$Ship$length = function (ship) {
+	switch (ship.$) {
+		case 'Destroyer':
+			return 2;
+		case 'Submarine':
+			return 3;
+		case 'Cruiser':
+			return 3;
+		case 'Battleship':
+			return 4;
+		default:
+			return 5;
+	}
+};
+var $elm$core$List$repeatHelp = F3(
+	function (result, n, value) {
+		repeatHelp:
+		while (true) {
+			if (n <= 0) {
+				return result;
+			} else {
+				var $temp$result = A2($elm$core$List$cons, value, result),
+					$temp$n = n - 1,
+					$temp$value = value;
+				result = $temp$result;
+				n = $temp$n;
+				value = $temp$value;
+				continue repeatHelp;
+			}
+		}
+	});
+var $elm$core$List$repeat = F2(
+	function (n, value) {
+		return A3($elm$core$List$repeatHelp, _List_Nil, n, value);
+	});
 var $elm$core$Dict$sizeHelp = F2(
 	function (n, dict) {
 		sizeHelp:
@@ -5654,6 +5743,37 @@ var $elm$core$Dict$sizeHelp = F2(
 	});
 var $elm$core$Dict$size = function (dict) {
 	return A2($elm$core$Dict$sizeHelp, 0, dict);
+};
+var $author$project$Board$shipsLeft = function (board) {
+	var ungroup = $elm$core$List$concatMap(
+		function (_v2) {
+			var a = _v2.a;
+			var count = _v2.b;
+			return A2($elm$core$List$repeat, count, a);
+		});
+	var f = function (_v1) {
+		var ship = _v1.a;
+		var ships = _v1.b;
+		var startCellCount = ($elm$core$List$length(ships) + 1) * $author$project$Ship$length(ship);
+		var currentCellCount = $elm$core$Dict$size(
+			A2(
+				$elm$core$Dict$filter,
+				F2(
+					function (_v0, shot) {
+						return _Utils_eq(
+							shot,
+							$author$project$Shot$Hit(ship));
+					}),
+				board.placedShots));
+		var currentShipCount = $elm$core$Basics$ceiling(
+			(startCellCount - currentCellCount) / $author$project$Ship$length(ship));
+		return _Utils_Tuple2(ship, currentShipCount);
+	};
+	return ungroup(
+		A2(
+			$elm$core$List$map,
+			f,
+			$elm_community$list_extra$List$Extra$gatherEquals(board.ships)));
 };
 var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
 var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
@@ -5790,6 +5910,15 @@ var $author$project$View$appView = function (app) {
 									$elm$html$Html$text(
 									app.isSolving ? 'Stop' : 'Solve')
 								]))
+						])),
+					A2(
+					$elm$html$Html$div,
+					_List_Nil,
+					_List_fromArray(
+						[
+							$elm$html$Html$text(
+							'Ships Left : ' + $elm$core$Debug$toString(
+								$author$project$Board$shipsLeft(board)))
 						])),
 					A2(
 					$elm$html$Html$div,
@@ -6396,20 +6525,6 @@ var $author$project$Extra$isInRange = F2(
 		var h = _v1.b;
 		return (x >= 0) && ((_Utils_cmp(x, w) < 0) && ((y >= 0) && (_Utils_cmp(y, h) < 0)));
 	});
-var $author$project$Ship$length = function (ship) {
-	switch (ship.$) {
-		case 'Destroyer':
-			return 2;
-		case 'Submarine':
-			return 3;
-		case 'Cruiser':
-			return 3;
-		case 'Battleship':
-			return 4;
-		default:
-			return 5;
-	}
-};
 var $author$project$LiveShip$locations = function (liveShip) {
 	var n = $author$project$Ship$length(liveShip.ship);
 	var _v0 = liveShip.startingLocation;
@@ -7128,9 +7243,6 @@ var $author$project$Board$reset = function (board) {
 			matchingShipGrids: A2($author$project$LiveShip$grids, board.ships, board.size),
 			placedShots: $elm$core$Dict$empty
 		});
-};
-var $author$project$Shot$Hit = function (a) {
-	return {$: 'Hit', a: a};
 };
 var $author$project$Shot$Miss = {$: 'Miss'};
 var $author$project$OpenBoard$matches = F2(
